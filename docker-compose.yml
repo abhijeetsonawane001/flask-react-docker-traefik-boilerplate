@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  
+  api:
+    build: ./services/api
+    command: flask run -h 0.0.0.0 -p 5000 --reload
+    env_file:
+      - ./services/api/.env
+    volumes:
+      - ./services/api/:/usr/src/app
+    labels:
+      - traefik.enable=true
+      - traefik.frontend.rule=Host:api.demo.local
+      - traefik.port=5000
+    deploy:
+      mode: replicated
+      replicas: 4
+  
+  client:
+    build: ./services/client
+    command: npm run start
+    env_file:
+      - ./services/client/.env
+    volumes:
+      - ./services/client/:/usr/src/app
+    labels:
+      - traefik.enable=true
+      - traefik.frontend.rule=Host:demo.local
+      - traefik.port=80
+    depends_on:
+      - api
+  
+  traefik:
+    image: traefik:alpine
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./services/traefik/traefik.toml:/etc/traefik/traefik.toml
+    labels:
+      - traefik.enable=true
+      - traefik.frontend.rule=Host:monitor.demo.local
+      - traefik.port=8080
+    ports:
+      - 80:80
+      - 8080:8080
+    depends_on:
+      - api
+      - client
+    

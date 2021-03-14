@@ -1,0 +1,13 @@
+defaultEntryPoints = ["http", "https"]
+logLevel = "INFO"
+
+[docker]
+    entryPoint = "unix:///var/run/docker.sock"
+    exposedByDefault = false
+
+[api]
+    dashboard = true
+
+[entryPoints]
+    [entryPoints.http]
+    address = ":80"
